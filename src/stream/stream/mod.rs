@@ -24,6 +24,7 @@
 mod all;
 mod any;
 mod chain;
+mod copied;
 mod cmp;
 mod enumerate;
 mod filter;
@@ -59,6 +60,7 @@ mod zip;
 use all::AllFuture;
 use any::AnyFuture;
 use cmp::CmpFuture;
+use copied::Copied;
 use enumerate::Enumerate;
 use filter_map::FilterMap;
 use find::FindFuture;
@@ -359,6 +361,36 @@ extension_trait! {
             U: Stream<Item = Self::Item> + Sized,
         {
             Chain::new(self, other)
+        }
+
+        #[doc = r#"
+            Creates a stream which copies all of its elements.
+
+            # Examples
+
+            ```
+            # fn main() { async_std::task::block_on(async {
+            #
+            use async_std::prelude::*;
+            use std::collections::VecDeque;
+
+            let s: VecDeque<_> = vec![1, 2, 3].into_iter().collect();
+            let mut s = s.copied();
+
+            assert_eq!(s.next().await, Some(1));
+            assert_eq!(s.next().await, Some(2));
+            assert_eq!(s.next().await, Some(3));
+            assert_eq!(s.next().await, None);
+
+            #
+            # }) }
+            ```
+        "#]
+        fn copied(self) -> Copied<Self>
+        where
+            Self: Sized,
+        {
+            Copied::new(self)
         }
 
         #[doc = r#"
